@@ -1,0 +1,38 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.springframework.org/schema/rabbit
+        http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+
+    <!-- connection -->
+    <rabbit:connection-factory id="connectionFactory"
+                               host="${rabbitmq.host}"
+                               port="${rabbitmq.port}"
+                               username="${rabbitmq.username}"
+                               password="${rabbitmq.password}"
+                               virtual-host="${rabbitmq.vhost}"/>
+
+    <!-- declare message queue artifacts -->
+    <rabbit:admin connection-factory="connectionFactory"/>
+
+    <!-- exchange -->
+    <rabbit:template id="rabbitTemplate" connection-factory="connectionFactory" exchange="post.office" />
+
+    <!-- queues -->
+    <rabbit:queue name="post.inbox" />
+
+    <!-- exchange and queues bindings -->
+    <rabbit:topic-exchange name="post.office">
+    <rabbit:bindings>
+        <rabbit:binding queue="post.inbox" pattern="ReceiverAddress" />
+    </rabbit:bindings>
+    </rabbit:topic-exchange>
+
+    <!-- consumers and queues bindings -->
+    <rabbit:listener-container connection-factory="connectionFactory">
+        <rabbit:listener ref="receiver" queue-names="post.inbox" />
+    </rabbit:listener-container>
+
+</beans>
